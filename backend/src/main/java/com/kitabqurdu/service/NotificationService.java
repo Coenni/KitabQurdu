@@ -25,12 +25,12 @@ public class NotificationService {
     }
     
     @Transactional
-    public Notification createNotification(User user, String type, String message) {
+    public Notification createNotification(User user, Notification.NotificationType type, String message) {
         Notification notification = new Notification();
         notification.setUser(user);
         notification.setType(type);
         notification.setMessage(message);
-        notification.setRead(false);
+        notification.setIsRead(false);
         notification.setCreatedAt(LocalDateTime.now());
         
         Notification saved = notificationRepository.save(notification);
@@ -64,7 +64,7 @@ public class NotificationService {
         notificationRepository.findById(notificationId)
             .filter(n -> n.getUser().getId().equals(user.getId()))
             .ifPresent(notification -> {
-                notification.setRead(true);
+                notification.setIsRead(true);
                 notificationRepository.save(notification);
             });
     }
@@ -72,16 +72,16 @@ public class NotificationService {
     @Transactional
     public void markAllAsRead(User user) {
         List<Notification> unread = notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(user);
-        unread.forEach(n -> n.setRead(true));
+        unread.forEach(n -> n.setIsRead(true));
         notificationRepository.saveAll(unread);
     }
     
     private NotificationDto convertToDto(Notification notification) {
         NotificationDto dto = new NotificationDto();
         dto.setId(notification.getId());
-        dto.setType(notification.getType());
+        dto.setType(notification.getType().name());
         dto.setMessage(notification.getMessage());
-        dto.setRead(notification.getRead());
+        dto.setIsRead(notification.getIsRead());
         dto.setCreatedAt(notification.getCreatedAt());
         return dto;
     }
