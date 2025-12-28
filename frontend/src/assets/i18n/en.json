@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "browse": "Browse Books",
+    "createPost": "Sell Book",
+    "profile": "Profile",
+    "myPosts": "My Posts",
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Buy and Sell Second-Hand Books",
+    "subtitle": "Find great books at affordable prices or sell your used books to book lovers",
+    "browseBooks": "Browse Books",
+    "sellBook": "Sell a Book",
+    "featuredPosts": "Featured Books",
+    "noPosts": "No posts available yet",
+    "createFirst": "Create the first post",
+    "howItWorks": "How It Works",
+    "step1Title": "Browse & Search",
+    "step1Desc": "Search for books by title, author, genre, or location",
+    "step2Title": "Connect",
+    "step2Desc": "Contact sellers directly to arrange pickup or delivery",
+    "step3Title": "Complete",
+    "step3Desc": "Meet up, inspect the book, and complete the transaction"
+  },
+  "post": {
+    "by": "by",
+    "viewDetails": "View Details",
+    "price": "Price",
+    "condition": "Condition",
+    "location": "Location",
+    "contact": "Contact"
+  },
+  "footer": {
+    "description": "Your trusted marketplace for second-hand books in Azerbaijan",
+    "rights": "All rights reserved"
+  }
+}

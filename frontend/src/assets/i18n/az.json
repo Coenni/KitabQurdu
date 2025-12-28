@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "browse": "Kitablar",
+    "createPost": "Kitab Sat",
+    "profile": "Profil",
+    "myPosts": "Mənim Elanlarım",
+    "login": "Daxil ol",
+    "register": "Qeydiyyat",
+    "logout": "Çıxış"
+  },
+  "home": {
+    "title": "İşlənmiş Kitabları Al və Sat",
+    "subtitle": "Münasib qiymətlərlə gözəl kitablar tapın və ya istifadə edilmiş kitablarınızı kitab həvəskarlarına satın",
+    "browseBooks": "Kitablara Bax",
+    "sellBook": "Kitab Sat",
+    "featuredPosts": "Seçilmiş Kitablar",
+    "noPosts": "Hələ elan yoxdur",
+    "createFirst": "İlk elanı yarat",
+    "howItWorks": "Necə İşləyir",
+    "step1Title": "Axtar və Tap",
+    "step1Desc": "Ad, müəllif, janr və ya məkan üzrə kitab axtarın",
+    "step2Title": "Əlaqə Saxla",
+    "step2Desc": "Tədarükçülər ilə birbaşa əlaqə saxlayın",
+    "step3Title": "Tamamla",
+    "step3Desc": "Görüşün, kitabı yoxlayın və əməliyyatı tamamlayın"
+  },
+  "post": {
+    "by": "müəllif",
+    "viewDetails": "Ətraflı Bax",
+    "price": "Qiymət",
+    "condition": "Vəziyyət",
+    "location": "Məkan",
+    "contact": "Əlaqə"
+  },
+  "footer": {
+    "description": "Azərbaycanda işlənmiş kitablar üçün etibarlı bazar yeriniz",
+    "rights": "Bütün hüquqlar qorunur"
+  }
+}
