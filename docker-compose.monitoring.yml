@@ -1,0 +1,130 @@
+version: '3.8'
+
+services:
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: kitabqurdu-loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - kitabqurdu-monitoring
+    volumes:
+      - loki_data:/loki
+
+  promtail:
+    image: grafana/promtail:2.9.3
+    container_name: kitabqurdu-promtail
+    volumes:
+      - /var/log:/var/log
+      - ./promtail-config.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - kitabqurdu-monitoring
+    depends_on:
+      - loki
+
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: kitabqurdu-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - kitabqurdu-monitoring
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: kitabqurdu-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./grafana-dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+    networks:
+      - kitabqurdu-monitoring
+    depends_on:
+      - prometheus
+      - loki
+
+  # Include backend and postgres from main docker-compose
+  postgres:
+    image: postgres:16-alpine
+    container_name: kitabqurdu-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-kitabqurdu}
+      POSTGRES_USER: ${DB_USERNAME:-kitabqurdu}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kitabqurdu}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - kitabqurdu-network
+      - kitabqurdu-monitoring
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kitabqurdu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: kitabqurdu-backend
+    environment:
+      SPRING_PROFILE: ${SPRING_PROFILE:-dev}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-kitabqurdu}
+      DB_USERNAME: ${DB_USERNAME:-kitabqurdu}
+      DB_PASSWORD: ${DB_PASSWORD:-kitabqurdu}
+      JWT_SECRET: ${JWT_SECRET:-default-secret-key-change-in-production-min-256-bits}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID:-}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET:-}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:4200}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kitabqurdu-network
+      - kitabqurdu-monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  kitabqurdu-network:
+    driver: bridge
+  kitabqurdu-monitoring:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  loki_data:
+  prometheus_data:
+  grafana_data:
