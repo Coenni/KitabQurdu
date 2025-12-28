@@ -2,6 +2,7 @@ package com.kitabqurdu.controller;
 
 import com.kitabqurdu.dto.PostDto;
 import com.kitabqurdu.dto.PostRequest;
+import com.kitabqurdu.service.FileStorageService;
 import com.kitabqurdu.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,12 +10,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -22,6 +28,9 @@ public class PostController {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private FileStorageService fileStorageService;
 
     @GetMapping
     public ResponseEntity<Page<PostDto>> getAllPosts(
@@ -92,5 +101,33 @@ public class PostController {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         return ResponseEntity.ok(postService.getUserPosts(userId, pageable));
+    }
+
+    @PostMapping("/{id}/images")
+    public ResponseEntity<Map<String, Object>> uploadImages(
+            @PathVariable Long id,
+            @RequestParam("files") List<MultipartFile> files,
+            Authentication authentication) {
+        
+        try {
+            List<String> fileNames = fileStorageService.storeMultipleFiles(files);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("postId", id);
+            response.put("uploadedFiles", fileNames);
+            response.put("count", fileNames.size());
+            
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to upload files");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Invalid file");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
     }
 }

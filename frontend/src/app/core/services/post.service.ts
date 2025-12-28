@@ -65,17 +65,34 @@ export class PostService {
     return this.http.get<PageResponse<Post>>(this.API_URL, { params });
   }
 
-  searchPosts(filters: any, page: number = 0, size: number = 20): Observable<PageResponse<Post>> {
+  getPosts(page: number = 0, size: number = 20, sortBy: string = 'createdAt', sortDir: string = 'DESC'): Observable<PageResponse<Post>> {
+    return this.getAllPosts(page, size, sortBy, sortDir);
+  }
+
+  searchPosts(
+    query?: string, 
+    genre?: string, 
+    city?: string, 
+    minPrice?: number | null, 
+    maxPrice?: number | null,
+    condition?: string,
+    page: number = 0, 
+    size: number = 20,
+    sortBy: string = 'createdAt',
+    sortDir: string = 'DESC'
+  ): Observable<PageResponse<Post>> {
     let params = new HttpParams()
       .set('page', page.toString())
-      .set('size', size.toString());
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('sortDir', sortDir);
 
-    if (filters.query) params = params.set('query', filters.query);
-    if (filters.genre) params = params.set('genre', filters.genre);
-    if (filters.city) params = params.set('city', filters.city);
-    if (filters.minPrice) params = params.set('minPrice', filters.minPrice);
-    if (filters.maxPrice) params = params.set('maxPrice', filters.maxPrice);
-    if (filters.condition) params = params.set('condition', filters.condition);
+    if (query) params = params.set('query', query);
+    if (genre) params = params.set('genre', genre);
+    if (city) params = params.set('city', city);
+    if (minPrice !== null && minPrice !== undefined) params = params.set('minPrice', minPrice.toString());
+    if (maxPrice !== null && maxPrice !== undefined) params = params.set('maxPrice', maxPrice.toString());
+    if (condition) params = params.set('condition', condition);
 
     return this.http.get<PageResponse<Post>>(`${this.API_URL}/search`, { params });
   }
@@ -86,6 +103,10 @@ export class PostService {
 
   getPostById(id: number): Observable<Post> {
     return this.http.get<Post>(`${this.API_URL}/${id}`);
+  }
+
+  getPost(id: number): Observable<Post> {
+    return this.getPostById(id);
   }
 
   createPost(request: PostRequest): Observable<Post> {
