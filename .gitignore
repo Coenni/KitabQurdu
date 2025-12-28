@@ -18,6 +18,11 @@ frontend/.nx/
 frontend/coverage/
 frontend/.env
 frontend/.env.local
+frontend/src/app/generated/
+
+# OpenAPI Generated
+backend/src/main/java/com/kitabqurdu/api/
+backend/src/main/java/com/kitabqurdu/api/model/
 
 # IDEs
 .idea/
