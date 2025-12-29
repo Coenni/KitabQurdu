@@ -1,0 +1,30 @@
+package com.kitabqurdu.repository;
+
+import com.kitabqurdu.model.Post;
+import com.kitabqurdu.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificationExecutor<Post> {
+    
+    Page<Post> findByStatus(Post.Status status, Pageable pageable);
+    
+    Page<Post> findByUser(User user, Pageable pageable);
+    
+    @Query("SELECT p FROM Post p WHERE p.status = :status AND " +
+           "(LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(p.authorName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+           "LOWER(p.bookTitle) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<Post> searchPosts(@Param("query") String query, @Param("status") Post.Status status, Pageable pageable);
+    
+    List<Post> findTop10ByStatusOrderByCreatedAtDesc(Post.Status status);
+}

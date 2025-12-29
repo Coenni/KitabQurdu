@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kitabqurdu-postgres-stage
+    environment:
+      POSTGRES_DB: ${DB_NAME:-kitabqurdu_stage}
+      POSTGRES_USER: ${DB_USERNAME:-kitabqurdu}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_stage_data:/var/lib/postgresql/data
+    networks:
+      - kitabqurdu-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kitabqurdu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ghcr.io/coenni/kitabqurdu/backend:stage
+    container_name: kitabqurdu-backend-stage
+    environment:
+      SPRING_PROFILE: stage
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-kitabqurdu_stage}
+      DB_USERNAME: ${DB_USERNAME:-kitabqurdu}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID:-}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET:-}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://stage.kitabqurdu.az}
+      APP_BASE_URL: ${APP_BASE_URL:-https://stage-api.kitabqurdu.az}
+      FRONTEND_URL: ${FRONTEND_URL:-https://stage.kitabqurdu.az}
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kitabqurdu-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/coenni/kitabqurdu/frontend:stage
+    container_name: kitabqurdu-frontend-stage
+    ports:
+      - "4201:80"
+    depends_on:
+      - backend
+    networks:
+      - kitabqurdu-network
+    restart: unless-stopped
+
+networks:
+  kitabqurdu-network:
+    driver: bridge
+
+volumes:
+  postgres_stage_data:

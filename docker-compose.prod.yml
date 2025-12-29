@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kitabqurdu-postgres-prod
+    environment:
+      POSTGRES_DB: ${DB_NAME:-kitabqurdu_prod}
+      POSTGRES_USER: ${DB_USERNAME:-kitabqurdu}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - kitabqurdu-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kitabqurdu"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  backend:
+    image: ghcr.io/coenni/kitabqurdu/backend:main
+    container_name: kitabqurdu-backend-prod
+    environment:
+      SPRING_PROFILE: prod
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-kitabqurdu_prod}
+      DB_USERNAME: ${DB_USERNAME:-kitabqurdu}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-https://kitabqurdu.az}
+      APP_BASE_URL: ${APP_BASE_URL:-https://api.kitabqurdu.az}
+      FRONTEND_URL: ${FRONTEND_URL:-https://kitabqurdu.az}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kitabqurdu-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  frontend:
+    image: ghcr.io/coenni/kitabqurdu/frontend:main
+    container_name: kitabqurdu-frontend-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - kitabqurdu-network
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    restart: always
+
+networks:
+  kitabqurdu-network:
+    driver: bridge
+
+volumes:
+  postgres_prod_data:

@@ -1,0 +1,51 @@
+# Backend
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/HELP.md
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.nx/
+frontend/coverage/
+frontend/.env
+frontend/.env.local
+frontend/src/app/generated/
+
+# OpenAPI Generated
+backend/src/main/java/com/kitabqurdu/api/
+backend/src/main/java/com/kitabqurdu/api/model/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+*.local
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# OS
+Thumbs.db
+.DS_Store
