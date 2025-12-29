@@ -53,7 +53,7 @@ public class NotificationService {
     }
     
     public List<NotificationDto> getUnreadNotifications(User user) {
-        return notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(user)
+        return notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user)
             .stream()
             .map(this::convertToDto)
             .collect(Collectors.toList());
@@ -71,7 +71,7 @@ public class NotificationService {
     
     @Transactional
     public void markAllAsRead(User user) {
-        List<Notification> unread = notificationRepository.findByUserAndReadFalseOrderByCreatedAtDesc(user);
+        List<Notification> unread = notificationRepository.findByUserAndIsReadFalseOrderByCreatedAtDesc(user);
         unread.forEach(n -> n.setIsRead(true));
         notificationRepository.saveAll(unread);
     }
